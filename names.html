@@ -115,7 +115,7 @@ function copyText(t,btn){var done=function(){var o=btn.textContent;btn.textConte
 var NAMES_SHEET = "https://docs.google.com/spreadsheets/d/1nUdesdtjT1TqjBoWKxo8QahWq2wJtgF2KcQUzeDAGdg/edit"; // لينك جوجل شيت فيه عمود "الاسم" وعمود "البداية" (تاريخ بداية التحدي)
 var NAMES_FORM  = "https://docs.google.com/forms/d/e/1FAIpQLSfmk8GwlW_uK4bmcWzOdHtT9VgmWTErTCEJM_LoJI16TSTkeg/viewform"; // لينك فورم التسجيل
 // ===================================================
-function sheetApi(u){var m=u.match(/\/d\/([a-zA-Z0-9-_]+)/);if(!m)return null;return "https://opensheet.elk.sh/"+m[1]+"/1"}
+function sheetApi(u){var m=u.match(/\/d\/([a-zA-Z0-9-_]+)/);if(!m)return null;return "https://docs.google.com/spreadsheets/d/"+m[1]+"/gviz/tq?tqx=out:json"}
 var note=document.getElementById("cfgNote");
 if(NAMES_FORM){document.getElementById("formLink").href=NAMES_FORM}else{note.textContent="التسجيل بيتجهز حاليًا، جرب تاني بعد شوية 🙏"}
 function parseDay(v){
@@ -154,7 +154,15 @@ function render(rows){
 }
 var api=NAMES_SHEET?sheetApi(NAMES_SHEET):null;
 if(!api){document.getElementById("namesList").innerHTML='<p class="muted">اللستة لسه بتتوصل... أول واحد ممكن يكون إنت 😄</p>'}
-else{fetch(api).then(function(r){return r.json()}).then(render).catch(function(){document.getElementById("namesList").innerHTML='<p class="muted">مش قادر أوصل لليستة دلوقتي، جرب تاني بعدين</p>'})}
+else{fetch(api).then(function(r){return r.text()}).then(function(t){
+ var j=JSON.parse(t.substring(t.indexOf("{"),t.lastIndexOf("}")+1));
+ var cols=j.table.cols.map(function(c){return (c.label||"").trim()});
+ var rows=(j.table.rows||[]).map(function(r){
+  var o={};(r.c||[]).forEach(function(c,i){o[cols[i]]=c?(c.f!=null?c.f:c.v):null});
+  return o;
+ });
+ render(rows);
+}).catch(function(){document.getElementById("namesList").innerHTML='<p class="muted">مش قادر أوصل لليستة دلوقتي، جرب تاني بعدين</p>'})}
 
 </script>
 </body>
